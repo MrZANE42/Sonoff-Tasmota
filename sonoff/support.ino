@@ -673,14 +673,11 @@ void WifiConnect()
 #ifdef MQTT_HOST_DISCOVERY
 boolean MdnsDiscoverMqttServer()
 {
-//  char ip_str[20];
-  int n;
-
   if (!mdns_begun) {
     return false;
   }
 
-  n = MDNS.queryService("mqtt", "tcp");  // Search for mqtt service
+  int n = MDNS.queryService("mqtt", "tcp");  // Search for mqtt service
 
   snprintf_P(log_data, sizeof(log_data), PSTR(D_LOG_MDNS D_QUERY_DONE " %d"), n);
   AddLog(LOG_LEVEL_INFO);
@@ -797,6 +794,17 @@ void I2cScan(char *devs, unsigned int devs_len)
   } else {
     snprintf_P(devs, devs_len, PSTR("{\"" D_CMND_I2CSCAN "\":\"" D_I2CSCAN_NO_DEVICES_FOUND "\"}"));
   }
+}
+
+boolean I2cDevice(byte addr)
+{
+  for (byte address = 1; address <= 127; address++) {
+    Wire.beginTransmission(address);
+    if (!Wire.endTransmission() && (address == addr)) {
+      return true;
+    }
+  }
+  return false;
 }
 #endif  // USE_I2C
 
@@ -1160,6 +1168,16 @@ double FastPrecisePow(double a, double b)
     e >>= 1;
   }
   return r * u.d;
+}
+
+char* GetIndexedString(char* destination, const char* source, uint8_t index)
+{
+  strcpy_P(destination, source);  // Copies Flash to Ram until end of string
+  char *indexed_string = strtok(destination, "|");
+  while (index--) {
+    indexed_string = strtok(NULL, "|");
+  }
+  return indexed_string;
 }
 
 /*********************************************************************************************\
